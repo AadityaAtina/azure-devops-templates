@@ -1,6 +1,0 @@
-variables:
-- name: envName
-  ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/development') }}:
-    value: dev
-  ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
-    value: prod

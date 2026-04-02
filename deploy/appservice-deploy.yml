@@ -1,0 +1,30 @@
+parameters:
+  appName: ''
+  appService: ''
+  resourceGroup: ''
+  slotName: ''
+
+jobs:
+- deployment: deploy_${{ parameters.appName }}_${{ parameters.slotName }}
+  displayName: 'Deploy ${{ parameters.appName }} to ${{ parameters.slotName }}'
+  environment: smartforce-${{ parameters.slotName }}
+  pool:
+    vmImage: $(vmImageName)
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - download: current
+          artifact: ${{ parameters.appName }}
+
+        - task: AzureWebApp@1
+          displayName: 'Deploy to App Service'
+          inputs:
+            azureSubscription: $(azureSubscription)
+            appType: webAppLinux
+            appName: ${{ parameters.appService }}
+            deployToSlotOrASE: true
+            resourceGroupName: ${{ parameters.resourceGroup }}
+            slotName: ${{ parameters.slotName }}
+            package: '$(Pipeline.Workspace)/${{ parameters.appName }}/${{ parameters.appName }}.zip'
+``

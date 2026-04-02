@@ -1,0 +1,23 @@
+parameters:
+  appName: ''
+  appService: ''
+  resourceGroup: ''
+
+jobs:
+- deployment: promote_${{ parameters.appName }}
+  displayName: 'Promote ${{ parameters.appName }} to Production'
+  environment: smartforce-production
+  pool:
+    vmImage: $(vmImageName)
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - task: AzureAppServiceManage@0
+          displayName: 'Swap staging → production'
+          inputs:
+            azureSubscription: $(azureSubscription)
+            Action: 'Swap Slots'
+            WebAppName: ${{ parameters.appService }}
+            ResourceGroupName: ${{ parameters.resourceGroup }}
+            SourceSlot: staging

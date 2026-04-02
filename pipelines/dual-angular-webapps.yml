@@ -1,0 +1,62 @@
+parameters:
+  azureSubscription: ''
+  apps: []
+
+stages:
+
+# ================= BUILD =================
+- stage: Build
+  displayName: 'Build Applications'
+  jobs:
+  - ${{ each app in parameters.apps }}:
+    - job: build_${{ app.name }}
+      displayName: 'Build ${{ app.name }}'
+      pool:
+        vmImage: $(vmImageName)
+      variables:
+        azureSubscription: ${{ parameters.azureSubscription }}
+      steps:
+      - template: ../build/angular-build.yml
+        parameters:
+          appName: ${{ app.name }}
+          buildDevCmd: ${{ app.buildDevCmd }}
+          buildProdCmd: ${{ app.buildProdCmd }}
+
+# ================= DEV DEPLOY =================
+- stage: Deploy_Dev
+  condition: and(succeeded(), eq(variables['envName'], 'dev'))
+  dependsOn: Build
+  jobs:
+  - ${{ each app in parameters.apps }}:
+    - template: ../deploy/appservice-deploy.yml
+      parameters:
+        appName: ${{ app.name }}
+        appService: ${{ app.appService }}
+        resourceGroup: ${{ app.resourceGroup }}
+        slotName: dev
+
+# ================= STAGING DEPLOY =================
+- stage: Deploy_Staging
+  condition: and(succeeded(), eq(variables['envName'], 'prod'))
+  dependsOn: Build
+  jobs:
+  - ${{ each app in parameters.apps }}:
+    - template: ../deploy/appservice-deploy.yml
+      parameters:
+        appName: ${{ app.name }}
+        appService: ${{ app.appService }}
+        resourceGroup: ${{ app.resourceGroup }}
+        slotName: staging
+
+# ================= PROD PROMOTION =================
+- stage: Promote_Prod
+  displayName: 'Promote to Production'
+  dependsOn: Deploy_Staging
+  condition: succeeded()
+  jobs:
+  - ${{ each app in parameters.apps }}:
+    - template: ../deploy/slot-swap.yml
+      parameters:
+        appName: ${{ app.name }}
+        appService: ${{ app.appService }}
+        resourceGroup: ${{ app.resourceGroup }}

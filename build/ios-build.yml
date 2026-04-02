@@ -1,0 +1,15 @@
+parameters:
+  appName: ''
+  scheme: ''
+  sdk: 'iphoneos'
+
+steps:
+- script: |
+    xcodebuild \
+      -scheme ${{ parameters.scheme }} \
+      -sdk ${{ parameters.sdk }} \
+      -configuration Release \
+      -archivePath build/${{ parameters.appName }}.xcarchive \
+      archive
+  displayName: 'Build iOS App'
+``

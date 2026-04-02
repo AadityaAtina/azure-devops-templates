@@ -1,0 +1,18 @@
+parameters:
+  appName: ''
+  gradleTask: 'assembleRelease'
+
+steps:
+- task: JavaToolInstaller@0
+  inputs:
+    versionSpec: '17'
+    jdkArchitectureOption: 'x64'
+
+- script: |
+    cd android
+    ./gradlew ${{ parameters.gradleTask }}
+  displayName: 'Build Android APK'
+
+- publish: android/app/build/outputs
+  artifact: android-${{ parameters.appName }}
+``

@@ -1,0 +1,15 @@
+parameters:
+  appName: ''
+  gradleTask: 'assembleRelease'
+
+stages:
+- stage: Android_Build
+  jobs:
+  - job: Build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - template: ../build/android-build.yml
+      parameters:
+        appName: ${{ parameters.appName }}
+        gradleTask: ${{ parameters.gradleTask }}
